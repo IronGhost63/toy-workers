@@ -7,9 +7,34 @@
  *
  * Learn more at https://developers.cloudflare.com/workers/
  */
+import NightTime from "./components/NightTime";
+
+const validRoutes = {
+	NightTime,
+}
 
 export default {
 	async fetch(request, env, ctx) {
-		return new Response('Hello World!');
+		const url = new URL( request.url );
+		const route = url.pathname;
+		const method = request.method.toLowerCase();
+
+		const routeFragment = route.split('/').shift();
+
+		if ( !validRoutes.hasOwnProperty( routeFragment[0] ) ) {
+			return new Response({
+				body: 'Unknown route',
+				status: 400,
+			});
+		}
+
+		if ( !validRoutes[ routeFragment[0] ].hasOwnProperty( method )) {
+			return new Response({
+				body: 'Unsupported method',
+				status: 400,
+			});
+		}
+
+		return validRoutes[ routeFragment[0] ][ method ]( request );
 	},
 };
